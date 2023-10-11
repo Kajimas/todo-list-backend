@@ -18,18 +18,28 @@ const PORT = process.env.PORT || 3000;
 // const DB_PASSWORD = process.env.DB_PASSWORD;
 // const DB_NAME = process.env.DB_NAME;
 
+const taskData = [
+  { task: "Task 1", completed: false },
+  { task: "Task 2", completed: true },
+];
+
+app.use(express.json());
 
 // Tests that will be removed later
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is listening on port ${PORT}`);
-});
-
 app.get("/testdotenv", (req, res) => {
   res.send(process.env.TEST_VARIABLE);
+});
+
+app.get("/testjson", (req, res) => {
+  res.json(taskData);
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is listening on port ${PORT}`);
 });
 
 // const CONFIG = {
