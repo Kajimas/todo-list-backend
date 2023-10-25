@@ -155,7 +155,8 @@ app.post("/:email/todo", extractAndValidateEmail, async (req, res, next) => {
 });
 
 /**
- * gets a todo task of a user by the task ID
+ * gets a todo task of a user by the taskID
+ * used for testing purposes only
  */
 app.get("/:email/todo/:taskId", async (req, res, next) => {
   try {
@@ -193,79 +194,93 @@ app.get("/:email/todo/:taskId", async (req, res, next) => {
 });
 
 /**
- * Updates a todo task of a user by email
+ * Updates a todo task of a user by taskID
  */
-app.put("/:email/todo/:id", extractAndValidateEmail, async (req, res, next) => {
-  try {
-    const taskId = req.params.id;
-    const updatedTask = req.body;
-
-    console.log("Target Task ID:", taskId);
-
-    // Validate the updated task details
-    if (!updatedTask.task || updatedTask.completed === undefined) {
-      return res.status(400).send("Invalid task details");
-    }
-
-    const user = await User.findOne({ email: req.email });
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
-
-    console.log("User's Tasks:", user.todo);
-
-    const task = user.todo.id(taskId);
-    if (!task) {
-      return res.status(404).send("Task not found");
-    }
-
-    // Update the task
-    task.set(updatedTask);
-
-    await user.save();
-
-    return res.json(task); // Return the updated task
-  } catch (err) {
-    console.error(err);
-    next(err);
-  }
-});
-
-/**
- * Deletes a todo task of a user by email
- */
-app.delete("/:email/todo/:taskId", async (req, res, next) => {
-  try {
+app.put(
+  "/:email/todo/:taskId",
+  extractAndValidateEmail,
+  async (req, res, next) => {
+    try {
       const { email, taskId } = req.params;
+      const updatedTask = req.body; // Extract the updated task details from request body
 
       // Convert taskId to ObjectId
       const taskObjectId = new mongoose.Types.ObjectId(taskId);
 
       // Find the user with the given email
       const user = await User.findOne({ email: email });
+
       if (!user) {
-          console.error(`User with email ${email} not found.`);
-          return res.status(404).send(`User with email ${email} not found.`);
+        console.error(`User with email ${email} not found.`);
+        return res.status(404).send(`User with email ${email} not found.`);
       }
 
-      // Find the specific task using Array#find
-      const task = user.todo.find(t => t._id.equals(taskObjectId));
+      console.log("Target Task ID:", taskId);
+
+      // Validate the updated task details
+      if (!updatedTask.task || updatedTask.completed === undefined) {
+        return res.status(400).send("Invalid task details");
+      }
+
+      console.log("User's Tasks:", user.todo);
+
+      const task = user.todo.id(taskId);
       if (!task) {
-          console.error(`Task with ID ${taskId} not found for user ${email}.`);
-          return res.status(404).send(`Task with ID ${taskId} not found for user ${email}.`);
+        return res.status(404).send("Task not found");
       }
 
-      // Remove the task from the user's todo array
-      const taskIndex = user.todo.indexOf(task);
-      user.todo.splice(taskIndex, 1);
+      // Update the task
+      task.set(updatedTask);
 
-      // Save the user with the task removed
       await user.save();
 
-      return res.status(204).send(); // 204 No Content, indicates successful deletion
-  } catch (err) {
-      console.error(`Error while processing request for user ${req.params.email} and task ${req.params.taskId}: ${err.message}`);
+      return res.json(task); // Return the updated task
+    } catch (err) {
+      console.error(err);
       next(err);
+    }
+  }
+);
+
+/**
+ * Deletes a todo task of a user by task ID
+ */
+app.delete("/:email/todo/:taskId", async (req, res, next) => {
+  try {
+    const { email, taskId } = req.params;
+
+    // Convert taskId to ObjectId
+    const taskObjectId = new mongoose.Types.ObjectId(taskId);
+
+    // Find the user with the given email
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      console.error(`User with email ${email} not found.`);
+      return res.status(404).send(`User with email ${email} not found.`);
+    }
+
+    // Find the specific task using Array#find
+    const task = user.todo.find((t) => t._id.equals(taskObjectId));
+    if (!task) {
+      console.error(`Task with ID ${taskId} not found for user ${email}.`);
+      return res
+        .status(404)
+        .send(`Task with ID ${taskId} not found for user ${email}.`);
+    }
+
+    // Remove the task from the user's todo array
+    const taskIndex = user.todo.indexOf(task);
+    user.todo.splice(taskIndex, 1);
+
+    // Save the user with the task removed
+    await user.save();
+
+    return res.status(204).send(); // 204 No Content, indicates successful deletion
+  } catch (err) {
+    console.error(
+      `Error while processing request for user ${req.params.email} and task ${req.params.taskId}: ${err.message}`
+    );
+    next(err);
   }
 });
 
