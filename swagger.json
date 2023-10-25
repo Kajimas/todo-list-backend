@@ -6,30 +6,49 @@
     "description": "A simple Task API"
   },
   "paths": {
-    "/testjson/checkTasks": {
+    "/{email}/todo": {
       "get": {
-        "summary": "Get all tasks",
-        "description": "Get all tasks",
+        "summary": "Get all tasks by email",
+        "description": "Get all tasks by user's email",
         "tags": ["Task"],
+        "parameters": [{
+          "in": "path",
+          "name": "email",
+          "description": "User's email",
+          "required": true,
+          "type": "string"
+        }],
         "responses": {
           "200": {
             "description": "Success"
+          },
+          "404": {
+            "description": "User not found"
           }
         }
-      }
-    },
-    "/testjson/pushTasks": {
+      },
       "post": {
-        "summary": "Push all tasks",
-        "description": "Push all tasks",
+        "summary": "Add tasks by email",
+        "description": "Add tasks by user's email",
         "tags": ["Task"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "email",
+            "description": "User's email",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
+          "description": "Task details to add",
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "$ref": "#/components/schemas/Task"
+                "$ref": "#/components/schemas/task"
               }
             }
           }
@@ -37,6 +56,9 @@
         "responses": {
           "200": {
             "description": "Success"
+          },
+          "404": {
+            "description": "User not found"
           }
         }
       }
@@ -44,12 +66,9 @@
   },
   "components": {
     "schemas": {
-      "Task": {
+      "task": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "number"
-          },
           "task": {
             "type": "string"
           },
